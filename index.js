@@ -67,6 +67,21 @@ app.delete('/api/persons/:id', (request, response) => {
 //New persons
 
 app.post('/api/persons', (request, response) => {
+
+  const nameExisted = persons.some(
+    person => person.name.toLowerCase() === request.body.name.toLowerCase()
+  )
+
+  if (!request.body.name || !request.body.number) {
+    return response.status(400).json({
+      error: 'The name or number is missing'
+    })
+  } else if (nameExisted) {
+    return response.status(400).json({
+      error: 'The name already exists, it most be unique'
+    })
+  }
+
   const id = Math.floor(Math.random() * 10000)
   const person = {
     name: request.body.name,
