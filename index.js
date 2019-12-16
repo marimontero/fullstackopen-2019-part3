@@ -1,8 +1,10 @@
+require('dotenv').config()
 const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
 const morgan = require('morgan')
 const cors = require('cors')
+const Phonebook = require('./mongo')
 
 app.use(bodyParser.json())
 app.use(cors())
@@ -43,7 +45,9 @@ let persons = [
 ]
 
 app.get('/api/persons', (request, response) => {
-  response.json(persons)
+  Phonebook.find({}).then(personsbd => {
+    response.json(personsbd)
+  })
 })
 
 app.get('/info', (request, response) => {
