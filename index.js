@@ -75,28 +75,20 @@ app.get('/api/persons/:id', (request, response) => {
 
 app.post('/api/persons', (request, response) => {
 
-  const nameExisted = persons.some(
-    person => person.name.toLowerCase() === request.body.name.toLowerCase()
-  )
+  const person = new Phonebook({
+    name: request.body.name,
+    number: request.body.number
+  })
+
+  person.save().then(savedPerson => {
+    response.json(savedPerson.toJSON())
+  })
 
   if (!request.body.name || !request.body.number) {
-    return response.status(400).json({
+    return response.status(400).send({
       error: 'The name or number is missing'
     })
-  } else if (nameExisted) {
-    return response.status(400).json({
-      error: 'The name already exists, it most be unique'
-    })
   }
-
-  const id = Math.floor(Math.random() * 10000)
-  const person = {
-    name: request.body.name,
-    number: request.body.number,
-    id
-  }
-  persons = persons.concat(person)
-  response.json(person)
 })
 
 app.delete('/api/persons/:id', (request, response) => {
