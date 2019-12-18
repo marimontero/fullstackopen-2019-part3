@@ -10,7 +10,7 @@ app.use(bodyParser.json())
 app.use(cors())
 app.use(express.static('build'))
 
-morgan.token('content-body', (request, response) => {
+morgan.token('content-body', (request) => {
   return JSON.stringify(request.body)
 })
 
@@ -18,21 +18,11 @@ app.use(morgan(':method :url :status :res[content-length] - :response-time ms :c
 
 //Persons GET
 app.get('/api/persons', (request, response, next) => {
-  Phonebook.find({}).then(personsbd => {
-    response.json(personsbd)
-  })
-  .catch(error => next(error))
-})
-
-//Info GET
-app.get('/info', (request, response) => {
-  const responseTime = new Date().toString()
-  response.send(
-    `
-     <p>Phonebook has info for ${persons.length} people</p>
-     <p>${responseTime}</p>
-    `
-  )
+  Phonebook.find({})
+    .then(personsbd => {
+      response.json(personsbd)
+    })
+    .catch(error => next(error))
 })
 
 //Person id GET
@@ -63,16 +53,17 @@ app.post('/api/persons', (request, response, next) => {
     number: request.body.number
   })
 
-  person.save().then(savedPerson => {
-    response.json(savedPerson.toJSON())
-  })
-  .catch(error => next(error))
+  person.save()
+    .then(savedPerson => {
+      response.json(savedPerson.toJSON())
+    })
+    .catch(error => next(error))
 })
 
 //Delete
 app.delete('/api/persons/:id', (request, response, next) => {
   Phonebook.findByIdAndRemove(request.params.id)
-    .then(result => {
+    .then(() => {
       response.status(204).end()
     })
     .catch(error => next(error))

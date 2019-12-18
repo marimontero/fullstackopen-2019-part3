@@ -1,7 +1,7 @@
 require('dotenv').config()
 const mongoose = require('mongoose')
 const uniqueValidator = require('mongoose-unique-validator')
-const url = `mongodb+srv://marimontero:${process.env.MONGODB_URI}@cluster0-tnsll.mongodb.net/test?retryWrites=true&w=majority`;
+const url = `mongodb+srv://marimontero:${process.env.MONGODB_URI}@cluster0-tnsll.mongodb.net/test?retryWrites=true&w=majority`
 
 mongoose.connect(url, { useUnifiedTopology: true, useNewUrlParser: true })
 
