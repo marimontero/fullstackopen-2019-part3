@@ -1,12 +1,25 @@
+require('dotenv').config()
 const mongoose = require('mongoose')
-const url = process.env.MONGODB_URI
+const uniqueValidator = require('mongoose-unique-validator')
+const url = `mongodb+srv://marimontero:${process.env.MONGODB_URI}@cluster0-tnsll.mongodb.net/test?retryWrites=true&w=majority`;
 
-mongoose.connect(url, { useNewUrlParser: true })
+mongoose.connect(url, { useUnifiedTopology: true, useNewUrlParser: true })
 
 const PhonebookSchema = new mongoose.Schema({
-  name: String,
-  number: String
+  name: {
+    type: String,
+    minlength: 3,
+    required: true,
+    unique: true
+  },
+  number: {
+    type: String,
+    minlength: 8,
+    required: true
+  }
 })
+
+PhonebookSchema.plugin(uniqueValidator)
 
 PhonebookSchema.set('toJSON', {
   transform: (document, returnedObject) => {
@@ -17,5 +30,4 @@ PhonebookSchema.set('toJSON', {
 })
 
 const Phonebook = mongoose.model('Phonebook', PhonebookSchema)
-
 module.exports = Phonebook

@@ -16,40 +16,15 @@ morgan.token('content-body', (request, response) => {
 
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :content-body'))
 
-let persons = [
-  {
-    name: 'Arto Hellas',
-    number: '040-123456',
-    id: 1
-  },
-  {
-    name: 'Adam Lovelace',
-    number: '39-44-5323523',
-    id: 2
-  },
-  {
-    name: 'Dan Abramov',
-    number: '12-43-234345',
-    id: 3
-  },
-  {
-    name: 'Mary Poppendieck',
-    number: '39-23-6423122',
-    id: 4
-  },
-  {
-    name: 'Maria Montero',
-    number: '34-65-63598119',
-    id: 5
-  }
-]
-
-app.get('/api/persons', (request, response) => {
+//Persons GET
+app.get('/api/persons', (request, response, next) => {
   Phonebook.find({}).then(personsbd => {
     response.json(personsbd)
   })
+  .catch(error => next(error))
 })
 
+//Info GET
 app.get('/info', (request, response) => {
   const responseTime = new Date().toString()
   response.send(
@@ -60,20 +35,28 @@ app.get('/info', (request, response) => {
   )
 })
 
-app.get('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id)
-  const person = persons.find(person => person.id === id)
+//Person id GET
+app.get('/api/persons/:id', (request, response, next) => {
 
-  if (person) {
-    response.json(person)
-  } else {
-    response.status(404).end()
-  }
+  Phonebook.findById(request.params.id)
+    .then(result => {
+      if (result) {
+        response.json(result.toJSON())
+      } else {
+        response.status(404).send({error: 'User not found'})
+      }
+    })
+    .catch(error => next(error))
 })
 
-//New persons
+//Person POST
+app.post('/api/persons', (request, response, next) => {
 
-app.post('/api/persons', (request, response) => {
+  if (!request.body.name || !request.body.number) {
+    return response.status(400).send({
+      error: 'The name or number is missing'
+    })
+  }
 
   const person = new Phonebook({
     name: request.body.name,
@@ -83,20 +66,46 @@ app.post('/api/persons', (request, response) => {
   person.save().then(savedPerson => {
     response.json(savedPerson.toJSON())
   })
-
-  if (!request.body.name || !request.body.number) {
-    return response.status(400).send({
-      error: 'The name or number is missing'
-    })
-  }
+  .catch(error => next(error))
 })
 
+//Delete
 app.delete('/api/persons/:id', (request, response, next) => {
   Phonebook.findByIdAndRemove(request.params.id)
     .then(result => {
       response.status(204).end()
     })
+    .catch(error => next(error))
 })
+
+//PUT
+app.put('/api/persons/:id', (request, response, next) => {
+
+  const person = {
+    name: request.body.name,
+    number: request.body.number
+  }
+
+  Phonebook.findByIdAndUpdate(request.params.id, person, { new: true })
+    .then(result => {
+      response.json(result.toJSON())
+    })
+    .catch(error => next(error))
+})
+
+//Error Handler
+const errorHandler = (error, request, response, next) => {
+  console.error('errorHandler: ', error.message)
+
+  if (error.name === 'CastError' && error.kind === 'ObjectId') {
+    return response.status(400).send({ error: 'malformatted id' })
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).send({ error: 'Name must be unique' })
+  }
+  next(error)
+}
+
+app.use(errorHandler)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
