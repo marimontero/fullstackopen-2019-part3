@@ -96,11 +96,10 @@ app.put('/api/persons/:id', (request, response, next) => {
 //Error Handler
 const errorHandler = (error, request, response, next) => {
   console.error('errorHandler: ', error.message)
-
   if (error.name === 'CastError' && error.kind === 'ObjectId') {
     return response.status(400).send({ error: 'malformatted id' })
   } else if (error.name === 'ValidationError') {
-    return response.status(400).send({ error: 'Name must be unique' })
+    return response.status(400).send({ error: error.message })
   }
   next(error)
 }
